@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
-
 #region To-do
     # Safer file handling (load once, then close)
     # Safer error handling
 #endregion
 
 #region Imports
-import sys
-import random
-import pystray
-import ctypes
-import threading
-from tkinter import *
+from PIL import Image, ImageTk
 from screeninfo import get_monitors
-from pynput.keyboard import Key, Listener
-from PIL import Image, ImageDraw, ImageTk
+import ctypes
 import numpy
+import pystray
+import random
+import threading
+import tkinter as tk
 #endregion
 
 #region Global variables
@@ -37,7 +33,7 @@ def debug_init():
     #testShape = pCanvas.create_oval(80, 30, 140, 150, fill="blue")
     test_img = Image.open("cat.png")
     tk_img = ImageTk.PhotoImage(test_img)
-    test_shape = p_canvas.create_image(0, 0, image=tk_img, anchor=CENTER) # pivot point in center of image
+    test_shape = p_canvas.create_image(0, 0, image=tk_img, anchor=tk.CENTER) # pivot point in center of image
     test_pet = Pet(name="kitty", position=[p_display_size[0].width/2, p_display_size[0].height/2], move_speed=15, shape=test_shape, tk_img=tk_img)
     test_pet.set_pos(test_pet.position[0], test_pet.position[1])
     p_pets.append(test_pet)
@@ -105,7 +101,7 @@ def spawn_pet():
     placeholder_img = Image.open("cat.png")
     img_recolored = recolor_with_numpy(placeholder_img, (random.randint(50,255), random.randint(50,255), random.randint(50,255)))
     tk_img = ImageTk.PhotoImage(img_recolored)
-    test_shape = p_canvas.create_image(0, 0, image=tk_img, anchor=CENTER) # pivot point in center of image
+    test_shape = p_canvas.create_image(0, 0, image=tk_img, anchor=tk.CENTER) # pivot point in center of image
     pet = Pet(name="kitty", position=[posX, posY], move_speed=15, current_direction=[dirX, dirY], shape=test_shape, tk_img=tk_img)
     pet.set_pos(pet.position[0], pet.position[1])
     
@@ -114,57 +110,6 @@ def spawn_pet():
     p_canvas.tag_bind(pet.shape, "<ButtonRelease-1>", pet.drag_pet_release)
 
     p_pets.append(pet)
-
-from PIL import Image
-
-def recolor_replace_alpha(image: Image.Image, new_rgb: tuple) -> Image.Image:
-    """
-    Replace every non-transparent pixel with `new_rgb` while keeping alpha.
-    image: PIL Image (any mode). new_rgb: (r,g,b)
-    Returns a new RGBA PIL Image.
-    """
-    img = image.convert("RGBA")
-    data = img.getdata()
-    new_data = []
-    nr, ng, nb = new_rgb
-    for (r, g, b, a) in data:
-        if a == 0:
-            new_data.append((0, 0, 0, 0))
-        else:
-            new_data.append((nr, ng, nb, a))
-    img.putdata(new_data)
-    return img
-
-def recolor_preserve_luminance(image: Image.Image, target_rgb: tuple) -> Image.Image:
-    """
-    Recolor image so shaded areas keep their brightness.
-    For each non-transparent pixel, compute luminance and scale target_rgb by that luminance.
-    """
-    img = image.convert("RGBA")
-    data = img.getdata()
-    new_data = []
-    tr, tg, tb = target_rgb
-    for (r, g, b, a) in data:
-        if a == 0:
-            new_data.append((0, 0, 0, 0))
-        else:
-            lum = int(0.299*r + 0.587*g + 0.114*b)  # 0..255
-            nr = int(tr * lum / 255)
-            ng = int(tg * lum / 255)
-            nb = int(tb * lum / 255)
-            new_data.append((nr, ng, nb, a))
-    img.putdata(new_data)
-    return img
-
-def recolor_with_numpy(image: Image.Image, new_rgb: tuple) -> Image.Image:
-    """
-    Fast recolor using numpy. Replaces all non-transparent pixels' RGB with new_rgb, preserving alpha.
-    """
-    img = image.convert("RGBA")
-    arr = numpy.array(img)  # shape (h, w, 4)
-    mask = arr[..., 3] > 0  # alpha > 0
-    arr[..., :3][mask] = new_rgb
-    return Image.fromarray(arr, mode="RGBA")
 
 def update_pets():
     global p_pets
@@ -185,6 +130,16 @@ def update_pets():
             pet.set_pos(pet.position[0], p_display_size[0].height)
     
     p_root.after(17, update_pets) # todo, 1/2 of refresh rate of display
+
+def recolor_with_numpy(image: Image.Image, new_rgb: tuple) -> Image.Image:
+    """
+    Fast recolor using numpy. Replaces all non-transparent pixels' RGB with new_rgb, preserving alpha.
+    """
+    img = image.convert("RGBA")
+    arr = numpy.array(img) # shape (h, w, 4)
+    mask = arr[..., 3] > 0 # alpha > 0
+    arr[..., :3][mask] = new_rgb
+    return Image.fromarray(arr, mode="RGBA")
 #endregion
 
 #region Tray icon methods
@@ -216,7 +171,6 @@ def setup_tray():
         menu=menu,
     )
 
-#    icon.run()    
 #endregion
 
 #region Window setup methods
@@ -226,7 +180,7 @@ def setup_canvas():
     global p_display_size
 
     p_display_size = get_monitors()
-    p_root = Tk()
+    p_root = tk.Tk()
     
     # Setup transparent window
     p_root.overrideredirect(True)
@@ -242,7 +196,7 @@ def setup_canvas():
     ctypes.windll.user32.SetWindowLongW(hwnd, -20, extended_style | 0x80000 | 0x20)
     
     #region Setup canvas
-    p_canvas = Canvas(p_root, bg="white",
+    p_canvas = tk.Canvas(p_root, bg="white",
         width=p_display_size[0].width, height=p_display_size[0].height, highlightthickness=0)
     
     p_canvas.pack(fill="both")
