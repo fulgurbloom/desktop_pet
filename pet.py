@@ -94,7 +94,7 @@ def spawn_pet():
     global p_display_size
 
     posX = random.randint(0, int(p_display_size[0].width))
-    posY = random.randint(0, int(p_display_size[1].height))
+    posY = random.randint(0, int(p_display_size[0].height))
     dirX = int(random.choice([-3,-2,-1,1,2,3])) # a little silly
     dirY = int(random.choice([-3,-2,-1,1,2,3]))
 
@@ -129,7 +129,7 @@ def update_pets():
         elif(pet.position[1] < 0):
             pet.set_pos(pet.position[0], p_display_size[0].height)
     
-    p_root.after(17, update_pets) # todo, 1/2 of refresh rate of display
+    p_root.after(20, update_pets)
 
 def recolor_with_numpy(image: Image.Image, new_rgb: tuple) -> Image.Image:
     """
@@ -213,7 +213,7 @@ def main():
     if p_icon is not None:
         threading.Thread(target=p_icon.run, daemon=True).start()
 
-    for i in range(0,512):
+    for i in range(0,128):
         spawn_pet()
 
     p_root.mainloop()
