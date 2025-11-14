@@ -106,6 +106,11 @@ def spawn_pet(
     pos = [0, 0]
     dir = [0, 0]
 
+    if pet_config is None:
+        raise ValueError("pet_config cannot be None")
+    if not isinstance(pet_config, PetConfig):
+        raise TypeError("pet_config must be an instance of PetConfig")
+
     match pet_config.initial_position_type[0].value:
         case InitialPositionType.SET.value:
             pos = [initial_position[0], initial_position[1]]
@@ -143,43 +148,51 @@ def spawn_pet(
 
 def update_pets(ctx):
     for pet in ctx.pets:
-        pet.move(ctx, pet.velocity[0], pet.velocity[1])
+        try:
+            pet.move(ctx, pet.velocity[0], pet.velocity[1])
 
-        # temporary note: 32 is "border" pixel amount to prevent pets from going off screen and killing python
+            # 16 is "border" pixel amount to prevent pets from going off screen and killing python
 
-        match pet.pet_config.border_reaction_type[0].value:
-            case (
-                BorderReactionType.BOUNCE.value
-            ):  # Switch directions on contact with border
-                if (
-                    pet.position[0] > (ctx.displays[0].width - 16)
-                    or pet.position[0] < 16
-                ):
-                    pet.velocity = [
-                        -pet.velocity[0],
-                        pet.velocity[1],
-                    ]
+            match pet.pet_config.border_reaction_type[0].value:
+                case (
+                    BorderReactionType.BOUNCE.value
+                ):  # Switch directions on contact with border
+                    if (
+                        pet.position[0] > (ctx.displays[0].width - 16)
+                        or pet.position[0] < 16
+                    ):
+                        pet.velocity = [
+                            -pet.velocity[0],
+                            pet.velocity[1],
+                        ]
 
-                if (
-                    pet.position[1] > (ctx.displays[0].height - 16)
-                    or pet.position[1] < 16
-                ):
-                    pet.velocity = [
-                        pet.velocity[0],
-                        -pet.velocity[1],
-                    ]
+                    if (
+                        pet.position[1] > (ctx.displays[0].height - 16)
+                        or pet.position[1] < 16
+                    ):
+                        pet.velocity = [
+                            pet.velocity[0],
+                            -pet.velocity[1],
+                        ]
 
-            case BorderReactionType.WRAP.value:  # Wrap around border to opposite end
-                if pet.position[0] > ctx.displays[0].width:
-                    pet.set_pos(ctx, 0, pet.position[1])
-                elif pet.position[0] < 0:
-                    pet.set_pos(ctx, ctx.displays[0].width, pet.position[1])
+                case (
+                    BorderReactionType.WRAP.value
+                ):  # Wrap around border to opposite end
+                    if pet.position[0] > ctx.displays[0].width:
+                        pet.set_pos(ctx, 0, pet.position[1])
+                    elif pet.position[0] < 0:
+                        pet.set_pos(ctx, ctx.displays[0].width, pet.position[1])
 
-                if pet.position[1] > ctx.displays[0].height:
-                    pet.set_pos(ctx, pet.position[0], 0)
-                elif pet.position[1] < 0:
-                    pet.set_pos(ctx, pet.position[0], ctx.displays[0].height)
-                pass
+                    if pet.position[1] > ctx.displays[0].height:
+                        pet.set_pos(ctx, pet.position[0], 0)
+                    elif pet.position[1] < 0:
+                        pet.set_pos(ctx, pet.position[0], ctx.displays[0].height)
+                    pass
+
+        except AttributeError as e:
+            print(f"Error updating pet {pet.name}: {e}")
+        except Exception as e:
+            print(f"Unexpected error with pet {pet.name}: {e}")
 
     ctx.root.after(20, lambda: update_pets(ctx))
 

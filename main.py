@@ -1,11 +1,8 @@
 # region To-do
-# Safer file handling (load once, then close)
-# Should be good but re-check everything
-# Safer error handling
-# Should be good but re-check everything
+# DONE Safer file handling (load once, then close)
+# CLOSE ENOUGH Safer error handling
 # DONE Fix 'NoneType' object has no attribute 'stop' on launch
 # DONE Implement enum options for creating customized pets
-# Add setup.py
 # DONE Fix tray Quit not working
 # Physics ("grounded" pets)
 # endregion
@@ -44,9 +41,14 @@ def setup_tray():
     global app_ctx
 
     try:
-        icon_image = Image.open("assets\\images\\icon.png")
+        with open("assets\\images\\icon.png", "rb") as f:
+            icon_image = Image.open(f).copy()
+    except FileNotFoundError:
+        print("Tray icon image not found")
+        icon_image = None
     except Exception as e:
-        print(e)
+        print(f"Error loading tray icon image: {e}")
+        icon_image = None
 
     default_pet_config = py_pet.PetConfig(
         name="default",
@@ -68,7 +70,7 @@ def setup_tray():
     )
 
     tray_icon = pystray.Icon(
-        name="deskpet name",
+        name="desktop pet",
         icon=icon_image,
         title="deskpet",
         menu=menu,
@@ -83,7 +85,7 @@ def quit_tray():
     try:
         app_ctx.root.quit()
     except Exception as e:
-        print(e)
+        print(f"Error quitting application: {e}")
 
 
 # endregion
@@ -150,16 +152,19 @@ def spawn_test_pets():
 def main():
     global app_ctx
 
-    setup_canvas()
-    setup_tray()
+    try:
+        setup_canvas()
+        setup_tray()
+        spawn_test_pets()
+    except Exception as e:
+        print(f"Error during application setup: {e}")
+        return
 
     # run tray icon on separate thread since run is blocking
     if app_ctx.tray_icon is not None:
         threading.Thread(target=app_ctx.tray_icon.run, daemon=True).start()
 
-    spawn_test_pets()
-
-    py_assets.pet_to_json(app_ctx.pets[0])
+    # py_assets.pet_to_json(app_ctx.pets[0])
 
     app_ctx.root.mainloop()
 

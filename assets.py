@@ -68,10 +68,15 @@ def json_to_pet(name) -> Pet:
             # tk_img=None
         )
     except FileNotFoundError as e:
-        print(f"Pet file not found: {e}")
+        print(f"Pet file not found: {name}.json - {e}")
         raise
     except (json.JSONDecodeError, KeyError) as e:
-        print(f"Invalid pet data: {e}")
+        print(f"Invalid pet data in {name}.json: {e}")
+        raise
+    except AttributeError as e:
+        print(
+            f"Pet object missing required attribute: {e}. Ensure all attributes are set."
+        )
         raise
 
 
@@ -85,7 +90,8 @@ def load_image(file, random_color: bool) -> ImageTk:
     Optionally recolor with random RGB values.
     """
     try:
-        img = Image.open(file)
+        with open(file, "rb") as f:
+            img = Image.open(f).copy()
 
         if random_color:
             img = recolor_image(
@@ -128,10 +134,12 @@ def recolor_image(image: Image.Image, new_rgb: tuple) -> Image.Image:
         arr[..., :3][mask] = new_rgb
         return Image.fromarray(arr, mode="RGBA")
     except (TypeError, ValueError) as e:
-        print(f"Invalid argument: {e}")
+        print(
+            f"Invalid argument for recoloring image: {e}. Image: {image}, RGB: {new_rgb}"
+        )
         raise
     except Exception as e:
-        print(f"Error recoloring image: {e}")
+        print(f"Unexpected error while recoloring image: {e}")
         raise
 
 
