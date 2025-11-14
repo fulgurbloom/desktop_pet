@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 import json
 import numpy
 import random
+from tkinter import messagebox
 
 # region To-do
 # Support more than png (file loading related)
@@ -31,17 +32,27 @@ def pet_serializer(obj):
     raise TypeError(f"Type {type(obj).__name__} not serializable")
 
 
-def pet_to_json(pet):
-    """Save Pet to json file"""
+def pet_to_json(pet: Pet):
+    """Save existing Pet to json file"""
+    pet_config_to_json(pet.pet_config)
+
+
+def pet_config_to_json(pet_config: PetConfig):
+    """Save PetConfig to json file"""
     try:
-        # Convert Pet to dictionary first
+        # Convert PetConfig to dictionary first
         pet_dict = {
-            "name": pet.name,
-            "move_speed": pet.move_speed,
+            "name": pet_config.name,
+            "move_speed": pet_config.move_speed,
         }
+
         json_str = json.dumps(pet_dict, indent=4)
-        with open(f"assets\\pets\\{pet.name}.json", "w") as file:
+        with open(f"assets\\pets\\{pet_config.name}.json", "w") as file:
             file.write(json_str)
+            messagebox.showinfo(
+                title="Pet saved",
+                detail=f"New pet saved at: assets\\pets\\{pet_config.name}.json",
+            )
     except AttributeError as e:
         print(f"Pet object missing required attribute: {e}")
         raise

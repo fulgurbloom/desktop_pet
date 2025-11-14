@@ -5,6 +5,7 @@
 # DONE Implement enum options for creating customized pets
 # DONE Fix tray Quit not working
 # Physics ("grounded" pets)
+# Animation support
 # endregion
 
 # region Imports
@@ -17,6 +18,7 @@ import tkinter as tk
 
 import assets as py_assets
 import pet as py_pet
+import menu_spawn as py_menu_spawn
 
 # endregion
 
@@ -64,7 +66,9 @@ def setup_tray():
 
     menu = pystray.Menu(
         pystray.MenuItem(
-            "Spawn", py_pet.spawn_pet(app_ctx, pet_config=default_pet_config)
+            # "Spawn", lambda: py_menu_spawn.create_spawn_window(app_ctx)
+            "Spawn",
+            py_menu_spawn.create_spawn_window(app_ctx),
         ),
         pystray.MenuItem("Quit", quit_tray),
     )

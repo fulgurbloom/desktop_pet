@@ -1,8 +1,9 @@
 # region Imports
 from enum import Enum
-import assets as py_assets
 import random
 import tkinter as tk
+
+import assets as py_assets
 
 # endregion
 
@@ -56,16 +57,12 @@ class Pet:
     velocity [x,y]
     """
 
-    def __init__(
-        self, name, position, move_speed, velocity, shape, tk_img, pet_config: PetConfig
-    ):
-        self.name = name
+    def __init__(self, pet_config: PetConfig, position, velocity, shape, tk_img):
+        self.pet_config = pet_config
         self.position = position.copy()
-        self.move_speed = move_speed
         self.velocity = velocity
         self.shape = shape
         self.tk_img = tk_img
-        self.pet_config = pet_config
 
     def speak(self):
         return f"i am {self.name}"
@@ -129,13 +126,11 @@ def spawn_pet(
         0, 0, image=tk_img, anchor=tk.CENTER
     )  # pivot point in center of image
     pet = Pet(
-        name=pet_config.name,
+        pet_config=pet_config,
         position=pos,
-        move_speed=pet_config.move_speed,
         velocity=dir,
         shape=shape,
         tk_img=tk_img,
-        pet_config=pet_config,
     )
     pet.set_pos(ctx, pet.position[0], pet.position[1])
 
